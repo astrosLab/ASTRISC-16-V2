@@ -24,10 +24,13 @@ Planned features are an emulator, assembler, compiler, and a few plugins.
 - 0x???? Program counter
 - 0x???? Error code
 - 0x???? Flags 
-- 0x???? Interrupts
-- 0xFFEF - 0xFBEF Stack pointer
-- 0xFBEF - 0xF7EF Call stack pointer
-- 0xFFF0 - 0xFFFF General I/O ports
+- 0x???? Interrupt status
+- 0x???? Stack pointer 
+- 0x???? Call stack pointer
+- 0x???? Program counter 
+- 0xFFEF - 0xFBEF Stack region
+- 0xFBEF - 0xF7EF Call stack region
+- 0xFFF0 - 0xFFFF General I/O port region
 
 #### Error codes
 Instead of halting when recieving an error, the error code value in RAM gets updated.
