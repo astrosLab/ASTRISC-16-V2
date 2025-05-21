@@ -52,7 +52,7 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 |IMM HIGH/LOW| 16 |
 
 ### Opcodes
-| Hex Code | Name | Word 1 | Word 2 | Word 3 | Description      |
+| Hex Code | Name | Byte 1 | Byte 2 | Byte 3 | Description      |
 |----------|------|--------|--------|--------|------------------|
 |0x00|NOP|OPCODE|||No operation|
 |0x01|LDI|OPCODE, REG|IMM_HIGH|IMM_LOW|Load the immediate into a register|
