@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <functional>
 
 class ASTRISC_16 {
 public:
@@ -35,6 +36,9 @@ private:
     bool running;
     bool debug;
     int hertz;
+	struct microOp;
+	struct opcode;
+	std::vector<opcode> opcodes;
 };
 
 #endif // A16_EMU_H

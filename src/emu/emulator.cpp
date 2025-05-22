@@ -1,5 +1,15 @@
 #include "emulator.h"
 
+struct ASTRISC_16::microOp {
+	std::string name;
+	std::function<void(int)> microOpFunc;
+};
+
+struct ASTRISC_16::opcode {
+	std::string name;
+	std::vector<microOp> microOps;
+};
+
 ASTRISC_16::ASTRISC_16() {
     memory.fill(0);
     generalRegisters.fill(0);
@@ -12,6 +22,8 @@ ASTRISC_16::ASTRISC_16() {
         0b11111111,
         0b11111111
     };
+
+	opcodes = {};
 }
 
 void ASTRISC_16::startCpu() {
