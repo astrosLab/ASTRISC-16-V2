@@ -12,7 +12,7 @@ Planned features are an emulator, assembler, compiler, and a few plugins.
 - Shared data/program RAM
 - 16 memory-mapped I/O ports
 - Reserved RAM area for special registers
-- Flags: zero, signed, carry, overflow (ALU updates carry, CMP updates others)
+- Flags: zero, signed, carry, overflow
 - 32 Opcodes
 - Micro ops
 - 8 general registers

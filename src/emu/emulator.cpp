@@ -532,17 +532,9 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
     switch (aluMode) {
         case 0: // ADD
             result = aluSrc1 + aluSrc2;
-            if (result < aluSrc1)
-                specialRegisters[FLAGS] = 0b00010000;
-            else
-                specialRegisters[FLAGS] = 0;
             break;
         case 1: // SUB
             result = aluSrc1 - aluSrc2;
-            if (aluSrc1 < aluSrc2)
-                specialRegisters[FLAGS] = 0b00010000;
-            else
-                specialRegisters[FLAGS] = 0;
             break;
         case 2: // MUL
             result = aluSrc1 * aluSrc2;
@@ -571,17 +563,9 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
             break;
         case 5: // INC
             result = aluSrc1 + 1;
-            if (result == 0)
-                specialRegisters[FLAGS] = 0b00010000;
-            else
-                specialRegisters[FLAGS] = 0b00000000;
             break;
         case 6: // DEC
             result = aluSrc1 - 1;
-            if (aluSrc1 == 0)
-                specialRegisters[FLAGS] = 0b00010000;
-            else
-                specialRegisters[FLAGS] = 0b00000000;
             break;
         case 7: // SHL
             result = aluSrc1 << aluSrc2;
