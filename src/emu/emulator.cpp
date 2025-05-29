@@ -69,12 +69,10 @@ ASTRISC_16::ASTRISC_16() {
         {"INC_CSP", [this](int param) { microINCCSP(param); }},
         {"DEC_CSP", [this](int param) { microDECCSP(param); }},
         {"PC_TO_BUS", [this](int param) { microPCTOBUS(param); }},
-
         {"BUS_TO_ALU_SRC1", [this](int param) { microBUSTOALUSRC1(param); }},
         {"BUS_TO_ALU_SRC2", [this](int param) { microBUSTOALUSRC2(param); }},
         {"BUS_TO_ALU_MODE", [this](int param) { microBUSTOALUMODE(param); }},
         {"ALU_TO_BUS", [this](int param) { microALUTOBUS(param); }},
-
         {"HALT", [this](int param) { microHALT(param); }},
     };
 
@@ -102,6 +100,14 @@ ASTRISC_16::ASTRISC_16() {
         {20, 2}, // OR
         {21, 2}, // NOR
         {22, 2}, // XOR
+        {23, 3}, // CMP
+        {24, 3}, // JMP
+        {25, 3}, // BZ
+        {26, 3}, // BS
+        {27, 3}, // BC
+        {28, 3}, // BO
+        {29, 1}, // NONE
+        {30, 1}, // NONE
         {31, 1} // HALT
     };
 
