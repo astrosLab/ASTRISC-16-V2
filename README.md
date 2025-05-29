@@ -58,7 +58,7 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 |0x01|LDI|OPCODE, REG|IMM_HIGH|IMM_LOW|Load the immediate into a register|
 |0x02|LOD|OPCODE, DST_REG|ADDR_REG||Load into DST_REG using address in ADDR_REG|
 |0x03|STR|OPCODE, SRC_REG|ADDR_REG||Store from SRC_REG using address in ADDR_REG|
-|0x04|CALL|OPCODE|ADDR_HIGH|ADDR_LOW|Push PC+1 to call stack, jump to ADDR|
+|0x04|CALL|OPCODE|ADDR_HIGH|ADDR_LOW|Push next instruction's address to call stack, jump to ADDR|
 |0x05|RET|OPCODE|||Pop call stack, jump to returned address|
 |0x06|PUSH|OPCODE, REG|||Pushes value in REG onto stack|
 |0x07|POP|OPCODE, REG|||Pops stack, store into REG|
@@ -68,8 +68,8 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 |0x0B|MUL|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG * SRC2_REG -> DST_REG|
 |0x0C|DIV|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG / SRC2_REG -> DST_REG|
 |0x0D|MOD|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG % SRC2_REG -> DST_REG|
-|0x0E|INC|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG + 1 -> DST_REG|
-|0x0F|DEC|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG - 1 -> DST_REG|
+|0x0E|INC|OPCODE, SRC1_REG|DST_REG||SRC1_REG + 1 -> DST_REG|
+|0x0F|DEC|OPCODE, SRC1_REG|DST_REG||SRC1_REG - 1 -> DST_REG|
 |0x10|SHL|OPCODE, SRC1_REG|DST_REG, IMM_4_BIT||SRC1_REG << IMM_4_BIT -> DST_REG|
 |0x11|SHR|OPCODE, SRC1_REG|DST_REG, IMM_4_BIT||SRC1_REG >> IMM_4_BIT -> DST_REG|
 |0x12|AND|OPCODE, SRC1_REG|SRC2_REG, DST_REG||SRC1_REG & SRC2_REG -> DST_REG|
