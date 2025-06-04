@@ -74,6 +74,8 @@ private:
     uint16_t aluSrc1;
     uint16_t aluSrc2;
     uint8_t aluMode;
+    uint16_t cmpSrc1;
+    uint16_t cmpSrc2;
 };
 
 #endif // A16_EMU_H
