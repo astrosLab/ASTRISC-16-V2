@@ -47,10 +47,14 @@ public:
     void microDECCSP(const int& param);
     void microPCTOBUS(const int& param);
     void microBUSTOPC(const int& param);
-    void microBUSTOALUSRC1(const int& param);
-    void microBUSTOALUSRC2(const int& param);
+    void microBUSTOARG1(const int& param);
+    void microBUSTOARG2(const int& param);
     void microBUSTOALUMODE(const int& param);
     void microALUTOBUS(const int& param);
+    void microCMPTOFLAGS(const int& param);
+    
+    void microCONTINUEIFFLAG(const int& param);
+
     void microHALT(const int& param);
 private:
     std::array<uint8_t, 65536> memory;
@@ -71,11 +75,9 @@ private:
     uint16_t busRegister;
     uint16_t addrBusRegister;
     bool skipRemainingMicroOps;
-    uint16_t aluSrc1;
-    uint16_t aluSrc2;
+    uint16_t arg1;
+    uint16_t arg2;
     uint8_t aluMode;
-    uint16_t cmpSrc1;
-    uint16_t cmpSrc2;
 };
 
 #endif // A16_EMU_H

@@ -69,10 +69,12 @@ ASTRISC_16::ASTRISC_16() {
         {"INC_CSP", [this](int param) { microINCCSP(param); }},
         {"DEC_CSP", [this](int param) { microDECCSP(param); }},
         {"PC_TO_BUS", [this](int param) { microPCTOBUS(param); }},
-        {"BUS_TO_ALU_SRC1", [this](int param) { microBUSTOALUSRC1(param); }},
-        {"BUS_TO_ALU_SRC2", [this](int param) { microBUSTOALUSRC2(param); }},
+        {"BUS_TO_ARG1", [this](int param) { microBUSTOARG1(param); }},
+        {"BUS_TO_ARG2", [this](int param) { microBUSTOARG2(param); }},
         {"BUS_TO_ALU_MODE", [this](int param) { microBUSTOALUMODE(param); }},
         {"ALU_TO_BUS", [this](int param) { microALUTOBUS(param); }},
+        {"CMP_TO_FLAGS", [this](int param) { microCMPTOFLAGS(param); }},
+        {"CONTINUE_IF_FLAG", [this](int param) { microCONTINUEIFFLAG(param); }},
         {"HALT", [this](int param) { microHALT(param); }},
     };
 
@@ -199,9 +201,9 @@ void ASTRISC_16::decodeInstruction() {
         case 9: // ADD
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -210,9 +212,9 @@ void ASTRISC_16::decodeInstruction() {
         case 10: // SUB
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 1});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -221,9 +223,9 @@ void ASTRISC_16::decodeInstruction() {
         case 11: // MUL
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 2});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -232,9 +234,9 @@ void ASTRISC_16::decodeInstruction() {
         case 12: // DIV
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 3});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -243,9 +245,9 @@ void ASTRISC_16::decodeInstruction() {
         case 13: // MOD
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 4}); // HERE
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -254,7 +256,7 @@ void ASTRISC_16::decodeInstruction() {
         case 14: // INC
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 5});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -263,7 +265,7 @@ void ASTRISC_16::decodeInstruction() {
         case 15: // DEC
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 6});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -272,9 +274,9 @@ void ASTRISC_16::decodeInstruction() {
         case 16: // SHL
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] >> 1) & 15});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 7});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -283,9 +285,9 @@ void ASTRISC_16::decodeInstruction() {
         case 17: // SHR
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] >> 1) & 15});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 8});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -294,9 +296,9 @@ void ASTRISC_16::decodeInstruction() {
         case 18: // AND 
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 9});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -305,9 +307,9 @@ void ASTRISC_16::decodeInstruction() {
         case 19: // NAND 
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 10});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -316,9 +318,9 @@ void ASTRISC_16::decodeInstruction() {
         case 20: // OR 
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 11});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -327,9 +329,9 @@ void ASTRISC_16::decodeInstruction() {
         case 21: // NOR 
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 12});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
@@ -338,13 +340,21 @@ void ASTRISC_16::decodeInstruction() {
         case 22: // XOR 
             microOpQueue.push_back({microOps["INC_PC"], 2});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC1"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
             microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
-            microOpQueue.push_back({microOps["BUS_TO_ALU_SRC2"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], 13});
             microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
             microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
             microOpQueue.push_back({microOps["BUS_TO_REG"], (instructionRegister[1] >> 2) & 7});
+            break;
+        case 23: // CMP
+            microOpQueue.push_back({microOps["INC_PC"], 2});
+            microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[0] & 7});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["REG_TO_BUS"], instructionRegister[1] >> 5});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["CMP_TO_FLAGS"], 0});
             break;
         case 31: // HALT
             microOpQueue.push_back({microOps["HALT"], 0});
@@ -511,18 +521,18 @@ void ASTRISC_16::microBUSTOPC(const int& param) {
     specialRegisters[PC] = busRegister;
 }
 
-void ASTRISC_16::microBUSTOALUSRC1(const int& param) {
+void ASTRISC_16::microBUSTOARG1(const int& param) {
     if (debug == true)
-        std::cout << "Writing data bus (" << busRegister << ") to ALU SRC 1" << std::endl;
+        std::cout << "Writing data bus (" << busRegister << ") to ARG 1" << std::endl;
 
-    aluSrc1 = busRegister;
+    arg1 = busRegister;
 }
 
-void ASTRISC_16::microBUSTOALUSRC2(const int& param) {
+void ASTRISC_16::microBUSTOARG2(const int& param) {
     if (debug == true)
-        std::cout << "Writing data bus (" << busRegister << ") to ALU SRC 2" << std::endl;
+        std::cout << "Writing data bus (" << busRegister << ") to ARG 2" << std::endl;
 
-    aluSrc2 = busRegister;
+    arg2 = busRegister;
 }
 
 void ASTRISC_16::microBUSTOALUMODE(const int& param) {
@@ -537,16 +547,16 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
 
     switch (aluMode) {
         case 0: // ADD
-            result = aluSrc1 + aluSrc2;
+            result = arg1 + arg2;
             break;
         case 1: // SUB
-            result = aluSrc1 - aluSrc2;
+            result = arg1 - arg2;
             break;
         case 2: // MUL
-            result = aluSrc1 * aluSrc2;
+            result = arg1 * arg2;
             break;
         case 3: // DIV
-            if (aluSrc2 == 0) {
+            if (arg2 == 0) {
                 if (debug == true)
                     std::cout << "Division by zero" << std::endl;
 
@@ -554,10 +564,10 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
                 specialRegisters[EC] = 5;
                 break;
             }
-            result = floor(aluSrc1 / aluSrc2);
+            result = floor(arg1 / arg2);
             break;
         case 4: // MOD
-            if (aluSrc2 == 0) {
+            if (arg2 == 0) {
                 if (debug == true)
                     std::cout << "Division by zero" << std::endl;
 
@@ -565,34 +575,34 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
                 specialRegisters[EC] = 5;
                 break;
             }
-            result = aluSrc1 % aluSrc2;
+            result = arg1 % arg2;
             break;
         case 5: // INC
-            result = aluSrc1 + 1;
+            result = arg1 + 1;
             break;
         case 6: // DEC
-            result = aluSrc1 - 1;
+            result = arg1 - 1;
             break;
         case 7: // SHL
-            result = aluSrc1 << aluSrc2;
+            result = arg1 << arg2;
             break;
         case 8: // SHR
-            result = aluSrc1 >> aluSrc2;
+            result = arg1 >> arg2;
             break;
         case 9: // AND
-            result = aluSrc1 & aluSrc2;
+            result = arg1 & arg2;
             break;
         case 10: // NAND
-            result = ~(aluSrc1 & aluSrc2);
+            result = ~(arg1 & arg2);
             break;
         case 11: // OR
-            result = aluSrc1 | aluSrc2;
+            result = arg1 | arg2;
             break;
         case 12: // NOR
-            result = ~(aluSrc1 | aluSrc2);
+            result = ~(arg1 | arg2);
             break;
         case 13: // XOR
-            result = aluSrc1 ^ aluSrc2;
+            result = arg1 ^ arg2;
             break;
     };
 
@@ -600,6 +610,53 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
         std::cout << "Writing ALU output (" << result << ") to data bus" << std::endl;
 
     busRegister = result;
+}
+
+void ASTRISC_16::microCMPTOFLAGS(const int& param) {
+    uint16_t subtraction = arg1 - arg2;
+    uint16_t flags = 0;
+
+    bool src1Sign = (arg1 & 0x800) != 0;
+    bool src2Sign = (arg2 & 0x800) != 0;
+    bool resultSign = (subtraction & 0x800) != 0;
+    
+    if (subtraction == 0)
+        flags |= 0b1000;
+    if (subtraction & 0x8000)
+        flags |= 0b0100;
+    if (arg1 < arg2)
+        flags |= 0b0010;
+    if ((src1Sign != src2Sign) && (resultSign != src1Sign)) 
+        flags |= 0b0001;
+
+    if (debug == true)
+        std::cout << "Setting new flags:"
+                  << " Z: " << ((flags & 0b1000) >> 3)
+                  << " S: " << ((flags & 0b0100) >> 2)
+                  << " C: " << ((flags & 0b0010) >> 1)
+                  << " O: " << (flags & 0b0001);
+
+    specialRegisters[FLAGS] = flags;
+}
+
+void ASTRISC_16::microCONTINUEIFFLAG(const int& param) {
+    if (debug == true) {
+        std::cout << "Checking value of the ";
+        if (param == 1) std::cout << "ZERO";
+        else if (param == 2) std::cout << "SIGNED";
+        else if (param == 4) std::cout << "CARRY";
+        else if (param == 8) std::cout << "OVERFLOW";
+        else std::cout << "UNKNOWN";
+        std::cout << " flag" << std::endl;
+    }
+
+    if ((specialRegisters[FLAGS] & param) == 0) {
+        skipRemainingMicroOps = true;
+        return;
+    }
+
+    if (debug == true)
+        std::cout << "Flag is active, running remaining micro ops." << std::endl;
 }
 
 void ASTRISC_16::microHALT(const int& param) {
