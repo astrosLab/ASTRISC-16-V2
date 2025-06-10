@@ -8,7 +8,44 @@ ASTRISC_16::ASTRISC_16() {
     debug = false;
 
     memory = {
-        0b00001000, // LDI R0 7
+        0b00001000, // LDI R0 0
+        0b00000000,
+        0b00000000,
+        0b00001001, // LDI R1 2
+        0b00000000,
+        0b00000000,
+        0b01110000, // INC R0 -> R0
+        0b00000000,
+        0b10111000, // CMP R0 R1 (0)
+        0b00100000,
+        0b11001000, // BZ 6
+        0b00000000,
+        0b00000110,
+        0b11000000, // JMP -7
+        0b11111111,
+        0b11111001,
+        0b11111000, // HALT
+
+        /* 0b00001000, // LDI R0 {number}
+        0b00100111,
+        0b00010000,
+        0b00001001, // LDI R1 {number}
+        0b10110001,
+        0b11100000,
+        0b10111000, // CMP R0 R1
+        0b00100000,
+        0b11111000, // HALT */
+
+        /*0b00001000, // LDI R0 0
+        0b00000000,
+        0b00000000,
+        0b01110000, // INC R0 -> R0
+        0b00000000,
+        0b11000000, // JMP -2
+        0b11111111,
+        0b11111110 */
+
+        /* 0b00001000, // LDI R0 7
         0b00000000,
         0b00000111,
         0b00001001, // LDI R1 2
@@ -16,7 +53,7 @@ ASTRISC_16::ASTRISC_16() {
         0b00000010,
         0b01001000, // ADD R0 R1 R2
         0b00101000, 
-        0b11111000, // HALT
+        0b11111000, // HALT */
 
         /* 0b00001000, // LDI R0 255
         0b00000000,
@@ -55,7 +92,6 @@ ASTRISC_16::ASTRISC_16() {
 
     microOps = {
         {"INC_PC", [this](int param) { microINCPC(param); }},
-        {"NOP", [this](int param) { microNOP(param); }},
         {"PARAM_TO_BUS", [this](int param) { microPARAMTOBUS(param); }},
         {"BUS_TO_REG", [this](int param) { microBUSTOREG(param); }},
         {"REG_TO_BUS", [this](int param) { microREGTOBUS(param); }},
@@ -69,6 +105,7 @@ ASTRISC_16::ASTRISC_16() {
         {"INC_CSP", [this](int param) { microINCCSP(param); }},
         {"DEC_CSP", [this](int param) { microDECCSP(param); }},
         {"PC_TO_BUS", [this](int param) { microPCTOBUS(param); }},
+        {"BUS_TO_PC", [this](int param) { microBUSTOPC(param); }},
         {"BUS_TO_ARG1", [this](int param) { microBUSTOARG1(param); }},
         {"BUS_TO_ARG2", [this](int param) { microBUSTOARG2(param); }},
         {"BUS_TO_ALU_MODE", [this](int param) { microBUSTOALUMODE(param); }},
@@ -117,15 +154,22 @@ ASTRISC_16::ASTRISC_16() {
 }
 
 void ASTRISC_16::startCpu() {
+    int cycleTime = 1000 / hertz;
     running = true;
 
     while (running == true) {
-        std::cout << unsigned(specialRegisters[PC]) << std::endl;
+        if (debug)
+            std::cout << unsigned(specialRegisters[PC]) << std::endl;
+
         skipRemainingMicroOps = false;
         fetchInstruction(specialRegisters[PC]);
         decodeInstruction();
         executeMicroOp();
-        std::cout << std::endl;
+
+        if (debug)
+            std::cout << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(cycleTime));
     }
 }
 
@@ -356,6 +400,69 @@ void ASTRISC_16::decodeInstruction() {
             microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
             microOpQueue.push_back({microOps["CMP_TO_FLAGS"], 0});
             break;
+        case 24: // JMP
+            microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
+            microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+            break;
+        case 25: // BZ
+            microOpQueue.push_back({microOps["INC_PC"], 3});
+            microOpQueue.push_back({microOps["CONTINUE_IF_FLAG"], 0b1000});
+            microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
+            microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+            break;
+        case 26: // BS 
+            microOpQueue.push_back({microOps["INC_PC"], 3});
+            microOpQueue.push_back({microOps["CONTINUE_IF_FLAG"], 0b0100});
+            microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
+            microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+            break;
+        case 27: // BC
+            microOpQueue.push_back({microOps["INC_PC"], 3});
+            microOpQueue.push_back({microOps["CONTINUE_IF_FLAG"], 0b0010});
+            microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
+            microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+            break;
+        case 28: // BO
+            microOpQueue.push_back({microOps["INC_PC"], 3});
+            microOpQueue.push_back({microOps["CONTINUE_IF_FLAG"], 0b0001});
+            microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ARG1"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+            microOpQueue.push_back({microOps["BUS_TO_ARG2"], 0});
+            microOpQueue.push_back({microOps["PARAM_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_ALU_MODE"], 0});
+            microOpQueue.push_back({microOps["ALU_TO_BUS"], 0});
+            microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+            break;
+        case 29: // NONE / NOP
+        case 30: 
+            microOpQueue.push_back({microOps["INC_PC"], 1});
+            microOpQueue.push_back({microOps["HALT"], 0});
+            break;
         case 31: // HALT
             microOpQueue.push_back({microOps["HALT"], 0});
             break;
@@ -366,7 +473,7 @@ void ASTRISC_16::executeMicroOp() {
     for (auto& [opcode, param] : microOpQueue) {
         opcode(param);
         if (skipRemainingMicroOps == true) {
-            if (debug == true) 
+            if (debug) 
                 std::cout << "Clearing remaining micro ops" << std::endl;
             break;
         }
@@ -375,33 +482,33 @@ void ASTRISC_16::executeMicroOp() {
 }
 
 void ASTRISC_16::microINCPC(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Increasing program counter by " << param << std::endl;
      
     specialRegisters[PC] += param;
 }
 
 void ASTRISC_16::microNOP(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "No operation" << std::endl;
 }
 
 void ASTRISC_16::microPARAMTOBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing " << param << " to data bus" << std::endl;
 
     busRegister = param;
 }
 
 void ASTRISC_16::microBUSTOREG(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing " << busRegister << " to register " << param << std::endl;
 
     generalRegisters[param] = busRegister;
 }
 
 void ASTRISC_16::microREGTOBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing value in register " << param
         << " (" << generalRegisters[param] << ") to data bus" << std::endl;
 
@@ -409,7 +516,7 @@ void ASTRISC_16::microREGTOBUS(const int& param) {
 }
 
 void ASTRISC_16::microREGTOADDRBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing value in register " << param 
         << " (" << generalRegisters[param] << ") to address bus" << std::endl;
 
@@ -417,7 +524,7 @@ void ASTRISC_16::microREGTOADDRBUS(const int& param) {
 }
 
 void ASTRISC_16::microRAMWRITE(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << 
             "Writing to RAM using data bus (" << busRegister <<
             ") and address bus (" << addrBusRegister << ")" << std::endl;
@@ -426,7 +533,7 @@ void ASTRISC_16::microRAMWRITE(const int& param) {
 }
 
 void ASTRISC_16::microRAMTOBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing RAM value at " << addrBusRegister
         << " (" << unsigned(memory[addrBusRegister]) << ") to data bus" << std::endl;
 
@@ -434,20 +541,20 @@ void ASTRISC_16::microRAMTOBUS(const int& param) {
 }
 
 void ASTRISC_16::microSPTOADDRBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing SP (" << specialRegisters[SP] << ") to address bus" << std::endl;
 
     addrBusRegister = specialRegisters[SP];
 }
 
 void ASTRISC_16::microINCSP(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Incrementing SP by 1 (" << specialRegisters[SP] + 1 << ")" << std::endl;
 
     if (specialRegisters[SP] != 0xFFF0) {
         specialRegisters[SP]++;
     } else {
-        if (debug == true)
+        if (debug)
             std::cout << "Stack underflow, not incrementing" << std::endl;
 
         skipRemainingMicroOps = true;
@@ -456,13 +563,13 @@ void ASTRISC_16::microINCSP(const int& param) {
 }
 
 void ASTRISC_16::microDECSP(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Decrementing SP by 1 (" << specialRegisters[SP] - 1 << ")" << std::endl;
 
     if (specialRegisters[SP] != 0xFBEF) {
         specialRegisters[SP]--;
     } else {
-        if (debug == true)
+        if (debug)
             std::cout << "Stack overflow, not decrementing" << std::endl;
 
         skipRemainingMicroOps = true;
@@ -471,20 +578,20 @@ void ASTRISC_16::microDECSP(const int& param) {
 }
 
 void ASTRISC_16::microCSPTOADDRBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing CSP (" << specialRegisters[CSP] << ") to address bus" << std::endl;
 
     addrBusRegister = specialRegisters[CSP];
 }
 
 void ASTRISC_16::microINCCSP(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Incrementing CSP by 1 (" << specialRegisters[CSP] + 1 << ")" << std::endl;
 
     if (specialRegisters[CSP] != 0xFBF0) {
         specialRegisters[CSP]++;
     } else {
-        if (debug == true)
+        if (debug)
             std::cout << "Call stack underflow, not incrementing" << std::endl;
 
         skipRemainingMicroOps = true;
@@ -493,13 +600,13 @@ void ASTRISC_16::microINCCSP(const int& param) {
 }
 
 void ASTRISC_16::microDECCSP(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Decrementing CSP by 1 (" << specialRegisters[CSP] - 1 << ")" << std::endl;
 
     if (specialRegisters[CSP] != 0xF7EF) {
         specialRegisters[CSP]--;
     } else {
-        if (debug == true)
+        if (debug)
             std::cout << "Call stack overflow, not decrementing" << std::endl;
 
         skipRemainingMicroOps = true;
@@ -508,35 +615,35 @@ void ASTRISC_16::microDECCSP(const int& param) {
 }
     
 void ASTRISC_16::microPCTOBUS(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing PC (" << specialRegisters[PC] << ") to data bus" << std::endl;
 
     busRegister = specialRegisters[PC];
 }
 
 void ASTRISC_16::microBUSTOPC(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing data bus (" << busRegister << ") to PC" << std::endl;
 
     specialRegisters[PC] = busRegister;
 }
 
 void ASTRISC_16::microBUSTOARG1(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing data bus (" << busRegister << ") to ARG 1" << std::endl;
 
     arg1 = busRegister;
 }
 
 void ASTRISC_16::microBUSTOARG2(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing data bus (" << busRegister << ") to ARG 2" << std::endl;
 
     arg2 = busRegister;
 }
 
 void ASTRISC_16::microBUSTOALUMODE(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Writing data bus (" << busRegister << ") to ALU MODE" << std::endl;
 
     aluMode = busRegister & 15;
@@ -557,7 +664,7 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
             break;
         case 3: // DIV
             if (arg2 == 0) {
-                if (debug == true)
+                if (debug)
                     std::cout << "Division by zero" << std::endl;
 
                 skipRemainingMicroOps = true;
@@ -568,7 +675,7 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
             break;
         case 4: // MOD
             if (arg2 == 0) {
-                if (debug == true)
+                if (debug)
                     std::cout << "Division by zero" << std::endl;
 
                 skipRemainingMicroOps = true;
@@ -606,7 +713,7 @@ void ASTRISC_16::microALUTOBUS(const int& param) {
             break;
     };
 
-    if (debug == true)
+    if (debug)
         std::cout << "Writing ALU output (" << result << ") to data bus" << std::endl;
 
     busRegister = result;
@@ -616,9 +723,9 @@ void ASTRISC_16::microCMPTOFLAGS(const int& param) {
     uint16_t subtraction = arg1 - arg2;
     uint16_t flags = 0;
 
-    bool src1Sign = (arg1 & 0x800) != 0;
-    bool src2Sign = (arg2 & 0x800) != 0;
-    bool resultSign = (subtraction & 0x800) != 0;
+    bool src1Sign = (arg1 & 0x8000) != 0;
+    bool src2Sign = (arg2 & 0x8000) != 0;
+    bool resultSign = (subtraction & 0x8000) != 0;
     
     if (subtraction == 0)
         flags |= 0b1000;
@@ -629,25 +736,25 @@ void ASTRISC_16::microCMPTOFLAGS(const int& param) {
     if ((src1Sign != src2Sign) && (resultSign != src1Sign)) 
         flags |= 0b0001;
 
-    if (debug == true)
+    if (debug)
         std::cout << "Setting new flags:"
                   << " Z: " << ((flags & 0b1000) >> 3)
                   << " S: " << ((flags & 0b0100) >> 2)
                   << " C: " << ((flags & 0b0010) >> 1)
-                  << " O: " << (flags & 0b0001);
+                  << " O: " << (flags & 0b0001) << std::endl;
 
     specialRegisters[FLAGS] = flags;
 }
 
 void ASTRISC_16::microCONTINUEIFFLAG(const int& param) {
-    if (debug == true) {
+    if (debug) {
         std::cout << "Checking value of the ";
-        if (param == 1) std::cout << "ZERO";
-        else if (param == 2) std::cout << "SIGNED";
-        else if (param == 4) std::cout << "CARRY";
-        else if (param == 8) std::cout << "OVERFLOW";
+        if (param == 8) std::cout << "ZERO";
+        else if (param == 4) std::cout << "SIGNED";
+        else if (param == 2) std::cout << "CARRY";
+        else if (param == 1) std::cout << "OVERFLOW";
         else std::cout << "UNKNOWN";
-        std::cout << " flag" << std::endl;
+        std::cout << " flag (" << (specialRegisters[FLAGS] & param) << ")" << std::endl;
     }
 
     if ((specialRegisters[FLAGS] & param) == 0) {
@@ -655,12 +762,12 @@ void ASTRISC_16::microCONTINUEIFFLAG(const int& param) {
         return;
     }
 
-    if (debug == true)
+    if (debug)
         std::cout << "Flag is active, running remaining micro ops." << std::endl;
 }
 
 void ASTRISC_16::microHALT(const int& param) {
-    if (debug == true)
+    if (debug)
         std::cout << "Halting CPU" << std::endl;
     
     running = false;

@@ -33,6 +33,7 @@ Planned features are an emulator, assembler, compiler, and a few plugins.
 
 #### Error codes
 Instead of halting when recieving an error, the error code value in RAM gets updated.
+
 | Name | Code |
 |------|------|
 |None|0x0|
@@ -45,6 +46,7 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 ## ASTRISC ISA
 
 #### Keyword Lengths
+
 | Name | Bit length |
 |------|------------|
 |OPCODE| 5 |
@@ -52,6 +54,7 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 |IMM HIGH/LOW| 16 |
 
 ### Opcodes
+
 | Hex Code | Name | Byte 1 | Byte 2 | Byte 3 | Description      |
 |----------|------|--------|--------|--------|------------------|
 |0x00|NOP|OPCODE|||No operation|
@@ -89,6 +92,7 @@ Instead of halting when recieving an error, the error code value in RAM gets upd
 
 ### Assembler Pseudoinstructions
 These instructions are replaced by multiple opcodes when assembled.
+
 | Name | Parameters | Expansion | Description |
 |------|------------|-----------|-------------|
 |BNZ|ADDR|BZ 2<br>JMP ADDR| Offset PC by ADDR if not ZERO |
@@ -97,5 +101,28 @@ These instructions are replaced by multiple opcodes when assembled.
 |BNO|ADDR|BO 2<br>JMP ADDR| Offset PC by ADDR if not OVERFLOW |
 
 ### Micro Ops
-WIP
 
+| Name | Parameters | Description|
+|------|------------|------------|
+|INC_PC|INC_AMOUNT|Increment the PC by INC_AMOUNT|
+|PARAM_TO_BUS|NUMBER|Load parameter to the bus|
+|BUS_TO_REG|REG|Bus to REG|
+|REG_TO_BUS|REG|REG to bus|
+|REG_TO_ADDR_BUS|REG|REG to address bus|
+|RAM_WRITE|NONE|Write to RAM using bus and address bus|
+|RAM_TO_BUS|NONE|Read from RAM, send to bus|
+|SP_TO_ADDR_BUS|NONE|Stack pointer to address bus|
+|INC_SP|NONE|Increment stack pointer|
+|DEC_SP|NONE|Decrement stack pointer|
+|CSP_TO_ADDR_BUS|NONE|Call stack pointer to address bus|
+|INC_CSP|NONE|Increment call stack pointer|
+|DEC_CSP|NONE|Decrement call stack pointer|
+|PC_TO_BUS|NONE|Program counter to bus|
+|BUS_TO_PC|NONE|Bus to program counter|
+|BUS_TO_ARG1|NONE|Bus to argument 1|
+|BUS_TO_ARG2|NONE|Bus to argument 2|
+|BUS_TO_ALU_MODE|NONE|Bus to ALU mode|
+|ALU_TO_BUS|NONE|ALU output to bus|
+|CMP_TO_FLAGS|NONE|Compare output to flag register|
+|CONTINUE_IF_FLAG|NONE|Don't clear remaining micro ops if flag is set|
+|HALT|NONE|Stops the CPU clock|

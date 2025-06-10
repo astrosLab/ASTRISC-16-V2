@@ -9,13 +9,14 @@
 #include <iostream>
 #include <functional>
 #include <cmath>
+#include <thread>
 
 class ASTRISC_16 {
 public:
     ASTRISC_16();
 
-    bool debug;
-    int hertz;
+    bool debug = false;
+    int hertz = 1000;
     enum specialRegisterNames {
         PC, // Program Counter
         EC, // Error Code
@@ -51,10 +52,8 @@ public:
     void microBUSTOARG2(const int& param);
     void microBUSTOALUMODE(const int& param);
     void microALUTOBUS(const int& param);
-    void microCMPTOFLAGS(const int& param);
-    
+    void microCMPTOFLAGS(const int& param); 
     void microCONTINUEIFFLAG(const int& param);
-
     void microHALT(const int& param);
 private:
     std::array<uint8_t, 65536> memory;
