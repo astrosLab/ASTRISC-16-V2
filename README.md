@@ -21,14 +21,15 @@ Planned features are an emulator, assembler, compiler, and a few plugins.
 - Interrupts
 
 #### Reserved RAM Addresses
-- 0x???? Program counter
-- 0x???? Error code
-- 0x???? Flags 
-- 0x???? Interrupt status
-- 0x???? Stack pointer 
-- 0x???? Call stack pointer
-- 0xFFEF - 0xFBEF Stack region
-- 0xFBEF - 0xF7EF Call stack region
+- 0xF7E5/0xF7E6 Program counter
+- 0xF7E7 Error code
+- 0xF7E8 Flags 
+- 0xF7E9 Interrupt status
+- 0xF7EA/0xF7EB Interrupt address location
+- 0xF7EC/0xF7ED Stack pointer 
+- 0xF7EE/0xF7EF Call stack pointer
+- 0xFFEF - 0xFBF0 Stack region
+- 0xFBEF - 0xF7F0 Call stack region
 - 0xFFF0 - 0xFFFF General I/O port region
 
 #### Error codes

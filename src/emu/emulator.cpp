@@ -8,82 +8,44 @@ ASTRISC_16::ASTRISC_16() {
     debug = false;
 
     memory = {
-        0b00001000, // LDI R0 0
+        0b11000000, // JMP 17
         0b00000000,
+        0b00010001,
+        0b01001000, // H
+        0b01100101, // e
+        0b01101100, // l
+        0b01101100, // l
+        0b01101111, // o
+        0b00101100, // ,
+        0b00100000, // 
+        0b01010111, // W
+        0b01101111, // o
+        0b01110010, // r
+        0b01101100, // l
+        0b01100100, // d
+        0b00100001, // !
+        0b00001010, // \n
+        0b00001000, // LDI R0 3
         0b00000000,
-        0b00001001, // LDI R1 2
+        0b00000011,
+        0b00001001, // LDI R1 16
         0b00000000,
+        0b00010001,
+        0b00001010, // LDI R2 0xFFF0
+        0b11111111,
+        0b11110000,
+        0b00010011, // LOD R3 R0
         0b00000000,
+        0b00011011, // STR R3 R2
+        0b01000000,
         0b01110000, // INC R0 -> R0
         0b00000000,
-        0b10111000, // CMP R0 R1 (0)
-        0b00100000,
-        0b11001000, // BZ 6
-        0b00000000,
-        0b00000110,
-        0b11000000, // JMP -7
-        0b11111111,
-        0b11111001,
-        0b11111000, // HALT
-
-        /* 0b00001000, // LDI R0 {number}
-        0b00100111,
-        0b00010000,
-        0b00001001, // LDI R1 {number}
-        0b10110001,
-        0b11100000,
         0b10111000, // CMP R0 R1
         0b00100000,
-        0b11111000, // HALT */
-
-        /*0b00001000, // LDI R0 0
-        0b00000000,
-        0b00000000,
-        0b01110000, // INC R0 -> R0
-        0b00000000,
-        0b11000000, // JMP -2
+        0b11010000, // BS -11
         0b11111111,
-        0b11111110 */
-
-        /* 0b00001000, // LDI R0 7
-        0b00000000,
-        0b00000111,
-        0b00001001, // LDI R1 2
-        0b00000000,
-        0b00000010,
-        0b01001000, // ADD R0 R1 R2
-        0b00101000, 
-        0b11111000, // HALT */
-
-        /* 0b00001000, // LDI R0 255
-        0b00000000,
-        0b11111111,
-        0b01000000, // MOV R0 R1
-        0b00100000,
-        0b11111000, // HALT */
-        
-        /*0b00100000, // CALL 4
-        0b00000000,
-        0b00000100,
+        0b11110101,
         0b11111000, // HALT
-        0b00001000, // LDI R0 32
-        0b00000000,
-        0b00100000,
-        0b00110000, // PUSH R0
-        0b00111001, // POP R1
-        0b00101000, // RET */
-        
-        /*0b00001001, // LDI R1 255
-        0b00000000,
-        0b11111111,
-        0b00001000, // LDI R0 20
-        0b00000000,
-        0b00010100, 
-        0b00011000, // STR R0 R1
-        0b00100000,
-        0b00010010, // LOD R3 R1
-        0b00100000,
-        0b11111000  // HALT */
     };
 
     specialRegisters[SP] = 0xFFF0;
@@ -161,15 +123,55 @@ void ASTRISC_16::startCpu() {
         if (debug)
             std::cout << unsigned(specialRegisters[PC]) << std::endl;
 
+        updateSpecialRegisters();
         skipRemainingMicroOps = false;
         fetchInstruction(specialRegisters[PC]);
         decodeInstruction();
         executeMicroOp();
 
+        if (memory[0xFFF0]) {
+            std::cout << (char)memory[0xFFF0];
+            memory[0xFFF0] = 0;
+        }
+
         if (debug)
             std::cout << std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(cycleTime));
+    }
+}
+
+void ASTRISC_16::updateSpecialRegisters() {
+    // Program Counter
+    memory[0xF7E5] = (specialRegisters[PC] & 0xFF00) >> 8;
+    memory[0xF7E6] = specialRegisters[PC] & 0xFF;
+    // Error Code
+    memory[0xF7E7] = specialRegisters[EC];
+    // Flags
+    memory[0xF7E8] = specialRegisters[FLAGS];
+    // Interrupt Status
+    memory[0xF7E9] = specialRegisters[I_STATUS];
+    // Interrupt Address Location
+    memory[0xF7EA] = (specialRegisters[I_ADDR] & 0xFF00) >> 8;
+    memory[0xF7EB] = specialRegisters[I_ADDR] & 0xFF;
+    // Stack Pointer
+    memory[0xF7EC] = (specialRegisters[SP] & 0xFF00) >> 8;
+    memory[0xF7ED] = specialRegisters[SP] & 0xFF;
+    // Call Stack Pointer
+    memory[0xF7EE] = (specialRegisters[CSP] & 0xFF00) >> 8;
+    memory[0xF7EF] = specialRegisters[CSP] & 0xFF;
+}
+
+void ASTRISC_16::checkInterrupt() {
+    if (specialRegisters[I_STATUS] == 1 && interruptPin == true) {
+        microOpQueue.push_back({microOps["INC_PC"], 3});
+        microOpQueue.push_back({microOps["DEC_CSP"], 0});
+        microOpQueue.push_back({microOps["PC_TO_BUS"], 0});
+        microOpQueue.push_back({microOps["CSP_TO_ADDR_BUS"], 0});
+        microOpQueue.push_back({microOps["RAM_WRITE"], 0});
+        microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
+        microOpQueue.push_back({microOps["BUS_TO_PC"], 0});
+        executeMicroOp();
     }
 }
 
@@ -188,7 +190,8 @@ void ASTRISC_16::decodeInstruction() {
     switch (instruction) {
         case 0: // NOP
             microOpQueue.push_back({microOps["INC_PC"], 1});
-            microOpQueue.push_back({microOps["HALT"], 0});
+            if (haltNop)
+                microOpQueue.push_back({microOps["HALT"], 0});
             break;
         case 1: // LDI
             microOpQueue.push_back({microOps["PARAM_TO_BUS"], (instructionRegister[1] << 8) + instructionRegister[2]});
@@ -529,15 +532,89 @@ void ASTRISC_16::microRAMWRITE(const int& param) {
             "Writing to RAM using data bus (" << busRegister <<
             ") and address bus (" << addrBusRegister << ")" << std::endl;
 
-    memory[addrBusRegister] = busRegister;
+    switch (addrBusRegister) {
+        case 0xF7E5:
+            specialRegisters[PC] = ((busRegister & 0xFF) << 8) | (specialRegisters[PC] & 0x00FF);
+            break;
+        case 0xF7E6:
+            specialRegisters[PC] = (specialRegisters[PC] & 0xFF00) | (busRegister & 0xFF);
+            break;
+        case 0xF7E7:
+            specialRegisters[EC] = busRegister & 0xFF;
+            break;
+        case 0xF7E8:
+            specialRegisters[FLAGS] = busRegister & 0xFF;
+            break;
+        case 0xF7E9:
+            specialRegisters[I_STATUS] = busRegister & 0xFF;
+            break;
+        case 0xF7EA:
+            specialRegisters[I_ADDR] = ((busRegister & 0xFF) << 8) | (specialRegisters[I_ADDR] & 0x00FF);
+            break;
+        case 0xF7EB:
+            specialRegisters[I_ADDR] = (specialRegisters[I_ADDR] & 0xFF00) | (busRegister & 0xFF);
+            break;
+        case 0xF7EC:
+            specialRegisters[SP] = ((busRegister & 0xFF) << 8) | (specialRegisters[SP] & 0x00FF);
+            break;
+        case 0xF7ED:
+            specialRegisters[SP] = (specialRegisters[SP] & 0xFF00) | (busRegister & 0xFF);
+            break;
+        case 0xF7EE:
+            specialRegisters[CSP] = ((busRegister & 0xFF) << 8) | (specialRegisters[CSP] & 0x00FF);
+            break;
+        case 0xF7EF:
+            specialRegisters[CSP] = (specialRegisters[CSP] & 0xFF00) | (busRegister & 0xFF);
+            break;
+        default:
+            memory[addrBusRegister] = busRegister;
+            break;
+    }
 }
 
 void ASTRISC_16::microRAMTOBUS(const int& param) {
     if (debug)
         std::cout << "Writing RAM value at " << addrBusRegister
-        << " (" << unsigned(memory[addrBusRegister]) << ") to data bus" << std::endl;
+                  << " (" << unsigned(memory[addrBusRegister]) << ") to data bus" << std::endl;
 
-    busRegister = memory[addrBusRegister];
+    switch (addrBusRegister) {
+        case 0xF7E5:
+            busRegister = (specialRegisters[PC] & 0xFF00) >> 8;
+            break;
+        case 0xF7E6:
+            busRegister = specialRegisters[PC] & 0x00FF;
+            break;
+        case 0xF7E7:
+            busRegister = specialRegisters[EC] & 0xFF;
+            break;
+        case 0xF7E8:
+            busRegister = specialRegisters[FLAGS] & 0xFF;
+            break;
+        case 0xF7E9:
+            busRegister = specialRegisters[I_STATUS] & 0xFF;
+            break;
+        case 0xF7EA:
+            busRegister = (specialRegisters[I_ADDR] & 0xFF00) >> 8;
+            break;
+        case 0xF7EB:
+            busRegister = specialRegisters[I_ADDR] & 0x00FF;
+            break;
+        case 0xF7EC:
+            busRegister = (specialRegisters[SP] & 0xFF00) >> 8;
+            break;
+        case 0xF7ED:
+            busRegister = specialRegisters[SP] & 0x00FF;
+            break;
+        case 0xF7EE:
+            busRegister = (specialRegisters[CSP] & 0xFF00) >> 8;
+            break;
+        case 0xF7EF:
+            busRegister = specialRegisters[CSP] & 0x00FF;
+            break;
+        default:
+            busRegister = memory[addrBusRegister];
+            break;
+    }
 }
 
 void ASTRISC_16::microSPTOADDRBUS(const int& param) {
@@ -566,7 +643,7 @@ void ASTRISC_16::microDECSP(const int& param) {
     if (debug)
         std::cout << "Decrementing SP by 1 (" << specialRegisters[SP] - 1 << ")" << std::endl;
 
-    if (specialRegisters[SP] != 0xFBEF) {
+    if (specialRegisters[SP] != 0xFBF0) {
         specialRegisters[SP]--;
     } else {
         if (debug)
@@ -603,7 +680,7 @@ void ASTRISC_16::microDECCSP(const int& param) {
     if (debug)
         std::cout << "Decrementing CSP by 1 (" << specialRegisters[CSP] - 1 << ")" << std::endl;
 
-    if (specialRegisters[CSP] != 0xF7EF) {
+    if (specialRegisters[CSP] != 0xF7F0) {
         specialRegisters[CSP]--;
     } else {
         if (debug)

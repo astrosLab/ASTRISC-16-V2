@@ -17,17 +17,21 @@ public:
 
     bool debug = false;
     int hertz = 1000;
+    bool haltNop = false;
     enum specialRegisterNames {
         PC, // Program Counter
         EC, // Error Code
         FLAGS, // Flags, Bit Order: [ ZERO, SIGNED, CARRY, OVERFLOW ]
-        INTERRUPT, // Interrupt Status
+        I_STATUS, // Interrupt Status
+        I_ADDR, // Interrupt Address Location
         SP, // Stack Pointer
         CSP, // Call Stack Pointer
         NUM_SPECIAL_REGISTERS 
     };
 
     void startCpu();
+    void updateSpecialRegisters();
+    void checkInterrupt();
     void fetchInstruction(const uint16_t& programCounter);
     void decodeInstruction();
     void executeMicroOp();
@@ -77,6 +81,7 @@ private:
     uint16_t arg1;
     uint16_t arg2;
     uint8_t aluMode;
+    bool interruptPin;
 };
 
 #endif // A16_EMU_H
