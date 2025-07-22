@@ -6,6 +6,8 @@ ASTRISC_16::ASTRISC_16() {
     specialRegisters.fill(0);
     running = false;
     debug = false;
+    hertz = 1000;
+    haltNop = false;
 
     memory = {
         0b11000000, // JMP 17
@@ -28,7 +30,7 @@ ASTRISC_16::ASTRISC_16() {
         0b00001000, // LDI R0 3
         0b00000000,
         0b00000011,
-        0b00001001, // LDI R1 16
+        0b00001001, // LDI R1 17
         0b00000000,
         0b00010001,
         0b00001010, // LDI R2 0xFFF0
@@ -727,7 +729,7 @@ void ASTRISC_16::microBUSTOALUMODE(const int& param) {
 }
 
 void ASTRISC_16::microALUTOBUS(const int& param) {
-    uint16_t result;
+    uint16_t result = 0;
 
     switch (aluMode) {
         case 0: // ADD

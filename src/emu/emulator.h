@@ -15,9 +15,9 @@ class ASTRISC_16 {
 public:
     ASTRISC_16();
 
-    bool debug = false;
-    int hertz = 1000;
-    bool haltNop = false;
+    bool debug;
+    int hertz;
+    bool haltNop;
     enum specialRegisterNames {
         PC, // Program Counter
         EC, // Error Code
