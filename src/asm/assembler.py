@@ -1,5 +1,6 @@
 import sys
 import os
+import lexer
 
 def print_error(message: str):
     print("\033[31m" + "error: " + "\033[0m" + message)
@@ -19,7 +20,7 @@ def main():
     with open(program_path, "r") as program_file:
         program = program_file.read()
 
-    print(program)
+    lexer.scan(program)
 
 if __name__ == "__main__":
     main()
