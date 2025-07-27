@@ -1,6 +1,7 @@
 import sys
 import os
 import lexer
+import preprocessor
 
 def print_error(message: str):
     print("\033[31m" + "error: " + "\033[0m" + message)
@@ -20,7 +21,10 @@ def main():
     with open(program_path, "r") as program_file:
         program = program_file.read()
 
-    lexer.scan(program)
+    print("LEXER:")
+    program_tokens = lexer.tokenize(program)
+    print("PREPROCESSOR:")
+    preprocessed_program = preprocessor.scan(program_tokens)
 
 if __name__ == "__main__":
     main()

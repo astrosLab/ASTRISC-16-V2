@@ -2,18 +2,19 @@
 1 DIRECTIVE: .file, .org, .ascii, .equ, .byte, .word
 1 LABEL: start, hello_world, MOV, ADD, JMP, CALL, R0, R1, R2, etc.
 1 COLON: :
-1 NUMBER: 1, -1, 0b1101, 0b0001011, 0xFF, 0x5849, etc.
+1 NUMBER_DEC: 1, -1, etc.
+1 NUMBER_BIN: 0b1101, 0b0001011, etc.
+1 NUMBER_HEX: 0xFF, 0x5849, etc.
 1 STRING: "Hello, World!", 'A', etc.
 1 COMMA: ,
 1 COMMENT (IGNORE): // testing 123
-1 PREPROCESSOR: #define
 1 EOL: \n
 """
 
 def is_varchar(character: str, special_char_list: list[str] = []):
     return character.isalpha() or character == "_" or character in special_char_list
 
-def scan(program: str):
+def tokenize(program: str):
     tokens = []
 
     char_index = 0
@@ -48,15 +49,6 @@ def scan(program: str):
             tokens.append(("DIRECTIVE", directive))
             continue
 
-        # Preprocessors
-        if char == "#":
-            start = char_index
-            while char_index < len(program) and is_varchar(program[char_index], ['#']):
-                char_index += 1
-            preprocessor = program[start:char_index]
-            tokens.append(("PREPROCESSOR", preprocessor))
-            continue
-
         # Strings/Chars
         if char == '"':
             start = char_index
@@ -70,7 +62,7 @@ def scan(program: str):
                 else:
                     char_index += 1
             char_index += 1
-            string = program[start:char_index]
+            string = program[start+1:char_index-1]
             tokens.append(("STRING", string))
             continue
 
@@ -86,7 +78,7 @@ def scan(program: str):
                 else:
                     char_index += 1
             char_index += 1
-            string = program[start:char_index]
+            string = program[start+1:char_index-1]
             tokens.append(("STRING", string))
             continue
 
@@ -111,18 +103,28 @@ def scan(program: str):
             while char_index < len(program) and program[char_index] in list("-0123456879"):
                 char_index += 1
             number = program[start:char_index]
-            tokens.append(("NUMBER", number))
+            tokens.append(("NUMBER_DEC", number))
             continue
 
         # Numbers (Decimal only positive)
         if char.isdigit():
-            # Hex/Bin
-            if char == '0' and (program[char_index + 1] in ["x", "b"]):
+            # Bin
+            if char == '0' and (program[char_index + 1] == 'b'):
                 start = char_index
-                while char_index < len(program) and program[char_index] in list("012345679xb"):
+                char_index += 2
+                while char_index < len(program) and program[char_index] in list("01"):
                     char_index += 1
                 number = program[start:char_index]
-                tokens.append(("NUMBER", number))
+                tokens.append(("NUMBER_BIN", number))
+                continue
+            # Hex
+            elif char == '0' and (program[char_index + 1] == 'x'):
+                start = char_index
+                char_index += 2
+                while char_index < len(program) and program[char_index] in list("0123456789ABCDEFabcdef"):
+                    char_index += 1
+                number = program[start:char_index]
+                tokens.append(("NUMBER_HEX", number))
                 continue
             # Decimal
             else:
@@ -130,7 +132,7 @@ def scan(program: str):
                 while char_index < len(program) and program[char_index].isdigit():
                     char_index += 1
                 number = program[start:char_index]
-                tokens.append(("NUMBER", number))
+                tokens.append(("NUMBER_DEC", number))
                 continue
 
         if char == ',':
@@ -140,6 +142,11 @@ def scan(program: str):
 
         char_index += 1
 
-    print(tokens)
+    line = []
+    for token in tokens:
+        line.append(token)
+        if (token[0] == "EOL"):
+            print(line)
+            line = []
 
     return tokens
