@@ -21,10 +21,12 @@ def main():
     with open(program_path, "r") as program_file:
         program = program_file.read()
 
-    print("LEXER:")
-    program_tokens = lexer.tokenize(program)
     print("PREPROCESSOR:")
-    preprocessed_program = preprocessor.scan(program_tokens)
+    processed = preprocessor.replace(program)
+    if processed["status"] == "error":
+        print_error(processed["value"])
+    # print("LEXER:")
+    # program_tokens = lexer.tokenize(preprocessed_program)
 
 if __name__ == "__main__":
     main()

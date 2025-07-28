@@ -1,4 +1,5 @@
 """
+1 BEGIN: beginning of program
 1 DIRECTIVE: .file, .org, .ascii, .equ, .byte, .word
 1 LABEL: start, hello_world, MOV, ADD, JMP, CALL, R0, R1, R2, etc.
 1 COLON: :
@@ -15,7 +16,7 @@ def is_varchar(character: str, special_char_list: list[str] = []):
     return character.isalpha() or character == "_" or character in special_char_list
 
 def tokenize(program: str):
-    tokens = []
+    tokens = [("BEGIN", '')]
 
     char_index = 0
 

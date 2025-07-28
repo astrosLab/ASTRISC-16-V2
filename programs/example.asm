@@ -1,5 +1,7 @@
 .org 0x0000
 
+    .equ test, 0xff
+
 .equ stop, halt
 stop .equ halt
 
