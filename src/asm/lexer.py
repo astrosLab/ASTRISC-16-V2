@@ -101,7 +101,8 @@ def tokenize(program: str):
         # Negative Decimal Numbers
         if char == "-":
             start = char_index
-            while char_index < len(program) and program[char_index] in list("-0123456879"):
+            char_index += 1
+            while char_index < len(program) and program[char_index] in list("0123456879"):
                 char_index += 1
             number = program[start:char_index]
             tokens.append(("NUMBER_DEC", number))
@@ -143,11 +144,13 @@ def tokenize(program: str):
 
         char_index += 1
 
+    """
     line = []
     for token in tokens:
         line.append(token)
         if (token[0] == "EOL"):
             print(line)
             line = []
+    """
 
     return tokens

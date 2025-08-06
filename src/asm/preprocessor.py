@@ -99,9 +99,12 @@ def replace(program: str):
 
             definitions[name] = value
 
-    print(definitions)
+    pp_program = '\n'.join(preprocessed)
 
     return {
         "status": "success",
-        "value": preprocessed
+        "value": {
+                "definitions": definitions,
+                "preprocessed": pp_program
+        }
     }
